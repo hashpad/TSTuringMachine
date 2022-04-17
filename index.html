@@ -4,8 +4,95 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <title>test</title>
+    <style>
+      * {margin:0; padding:0;}
+      #result {
+        width: 30%; 
+        float: left;
+      }
+      #data {
+        width: 70%; 
+        float: right;
+      }
+      #data > form {
+        margin: 5px;
+      }
+      .tape {
+        margin: 5px;
+      }
+      .tape > ul {
+        list-style: none;
+      }
+      .tape > ul > li {
+        float: left;
+        border: 1px solid #000000;
+        padding: 10px;
+      }
+      #tape_ul > li.head {
+        border-bottom: 10px solid #FC0;
+      }
+      .onestep_button {
+        margin: 5px;
+      }
+      .onestep_button > button {
+        background: #FCFCFC;
+        border: 1px solid #000;
+        padding: 5px;
+      }
+      .onestep_button > button:hover {
+        background: #000;
+        color: #FCFCFC;
+        border: 1px solid #000;
+        padding: 5px;
+      }
+
+      
+    </style>
   </head>
   <body>
-    <script src="index.js"></script>
+    <div id="app">
+      <div id="result">
+        <div class="tape">
+          <ul id="tape_ul">
+          </ul>
+        </div>
+        <div style="clear: both;"></div>
+
+        <div class="onestep_button">
+          <button type="button" id="oneStep">one step</button>
+        </div>
+        <div id="is_accepted">
+          
+        </div>
+      </div>
+      <div id="data">
+        <form id="data_form">
+          <label>input symbols:</label><br />
+          <input name="input_symbols" type="text" placeholder="separated by ','" /><br />
+
+          <label>initial tape content:</label><br />
+          <input name="init_tape" type="text" placeholder="separated by ','" /><br />
+
+          <label>states:</label><br />
+          <input name="states" type="text" placeholder="separated by ','" /><br />
+
+          <label>accepting states:</label><br />
+          <input name="accept_states" type="text" placeholder="separated by ','" /><br />
+
+          <label>Transition map:</label><br />
+          <button id="addTransitionEntry" type="button">+</button>
+          <div class="transitionEntry">
+            <input name="state" type="text" placeholder="state" />
+            <input name="read" type="text" placeholder="read" />
+            <input name="write" type="text" placeholder="write" />
+            <input name="direction" type="text" placeholder="direction" />
+            <input name="next_state" type="text" placeholder="next state" /><br />
+          </div>
+          <button id="submitMachine" type="submit">run</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="turing-machine.js"></script>
   </body>
 </html>
