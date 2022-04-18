@@ -16,9 +16,9 @@ export class GoodMap extends Map<Config, NextConfig> {
 }
 
 export enum Direction {
-  LEFT,
-  RIGHT,
-  NO
+  LEFT = "L",
+  RIGHT = "R",
+  NO = "N"
 }
 
 export class State {
@@ -189,6 +189,7 @@ export class TuringMachine extends Subject {
   public get tapeSymbolSet() {return this._tapeSymbolSet;}
   public get startState() {return this._startState;}
   public get currentConfig() {return this._currentConfig;}
+  public get transitionMap() {return this._transitionMap;}
 
   public transitionFunction() : NextConfig {
     let val:NextConfig = this._transitionMap.get(this._currentConfig);

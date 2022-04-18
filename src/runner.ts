@@ -1,8 +1,48 @@
+import cytoscape from 'cytoscape';
+
 import {InputSymbol, TapeElement, Tape, TuringHead, State, GoodMap, TuringMachine, Config, NextConfig, TapeSymbol, Direction} from './tm'
 
 import {Observer} from './observer'
 
-class Runner extends Observer {
+let cy = cytoscape({
+  container: document.getElementById('cy'),
+  style: [
+    {
+        selector: 'node',
+        style: {
+            content: 'data(name)',
+            shape: 'hexagon',
+            'background-color': 'red',
+            label: 'data(id)'
+        }
+    }]
+
+
+});
+
+//cy.add({
+    //data: { id: 'a'}
+    //}
+//);
+//cy.add({
+    //data: { id: 'b'}
+    //}
+//);
+//cy.add({
+    //data: {
+        //id: 'ab',
+        //source: 'a',
+        //target: 'b'
+    //}
+//});
+
+
+//cy.layout({
+    //name: 'circle'
+//}).run();
+
+
+class Runner implements Observer {
   private _inputSymbols : Array<InputSymbol>;
   private _tapeElements : Array<TapeElement>;
   private _turingTape : Tape;
@@ -39,7 +79,6 @@ class Runner extends Observer {
 
   public get tm() {return this._tm};
   constructor() {
-    super();
     this.renderOnce();
 
     const form = document.querySelector('form')!;
@@ -117,7 +156,77 @@ class Runner extends Observer {
   }
 
   public render(): void {
-    
+
+    cy.elements().remove();
+
+    this._tm.stateSet.forEach(s => {
+      cy.add({
+          data: { id: '' + s.stateId, name: s.stateName }
+          }
+      );
+    });
+    this._tm.stateSet.forEach(s => {
+      let keys : Array<Config> = Array.from(this._tm.transitionMap.keys());
+
+      let edges : Map<State, State> = new Map<State, State>();
+      keys.filter(k => k.state === s).forEach(c => {
+        if(edges.has(s) && edges.get(s) === this._transitionMap.get(c).state) {
+          cy.getElementById(s.stateId + '' + this._transitionMap.get(c).state.stateId).data({
+            label: 
+              cy.getElementById(s.stateId + '' + this._transitionMap.get(c).state.stateId).data('label') + '\n' + 
+              c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
+              
+          });
+        }else {
+          cy.add({
+              data: {
+                  id: s.stateId + '' + this._transitionMap.get(c).state.stateId,
+                  label: c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
+                  source: '' + s.stateId,
+                  target: '' + this._transitionMap.get(c).state.stateId
+              }
+          });
+          edges.set(s, this.tm.transitionMap.get(c).state);
+        }
+      });
+    });
+      
+    cy.style([{
+      'selector': 'node',
+      'css': {
+          'content': 'data(name)',
+          'text-valign': 'center',
+          'color': 'white',
+          'text-outline-width': 2,
+          'text-outline-color': 'green',
+          'background-color': 'green'
+      }
+      },
+      {
+      'selector': ':selected',
+      'css': {
+          'background-color': 'black',
+          'line-color': 'black',
+          'target-arrow-color': 'black',
+          'source-arrow-color': 'black',
+          'text-outline-color': 'black'
+      }},
+      {
+      'selector': 'edge',
+      'css': {
+          'content': 'data(label)',
+          'text-rotation': 'autorotate',
+          'text-margin-y': -20,
+          'target-arrow-color': '#000',
+          'curve-style': 'bezier',
+          'target-arrow-shape': 'triangle',
+          'text-wrap': 'wrap',
+      }}
+    ]);
+    cy.layout({
+        name: 'circle'
+    }).run();
+
     const tape = document.getElementById("tape_ul");
 
     tape.innerHTML = "";
@@ -154,5 +263,6 @@ class Runner extends Observer {
   }
 }
 
-new Runner();
+let runner : Runner = new Runner();
+console.log(runner.tm);
 

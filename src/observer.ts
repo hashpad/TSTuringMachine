@@ -1,5 +1,5 @@
-export abstract class Observer {
-  abstract render () : void;
+export interface Observer {
+  render () : void;
 }
 
 export class Subject {
