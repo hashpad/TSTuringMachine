@@ -64,7 +64,12 @@ class Runner implements Observer {
       const transitionNextStates = data.getAll('next_state');
 
       for(let inputSymbol of formInputSymbols) {
-        inputSymbols.push(new InputSymbol(inputSymbol));
+        try {
+          inputSymbols.push(new InputSymbol(inputSymbol));
+        }catch (e) {
+          console.log(e);
+          return false;
+        }
       }
 
       for(let tapeElement of initTape) {
