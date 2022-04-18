@@ -20,45 +20,11 @@ let cy = cytoscape({
 
 });
 
-//cy.add({
-    //data: { id: 'a'}
-    //}
-//);
-//cy.add({
-    //data: { id: 'b'}
-    //}
-//);
-//cy.add({
-    //data: {
-        //id: 'ab',
-        //source: 'a',
-        //target: 'b'
-    //}
-//});
-
-
-//cy.layout({
-    //name: 'circle'
-//}).run();
-
 
 class Runner implements Observer {
-  private _inputSymbols : Array<InputSymbol>;
-  private _tapeElements : Array<TapeElement>;
-  private _turingTape : Tape;
-  private _turingHead : TuringHead;
-  private _stateSet : Array<State>;
-  private _acceptSet : Array<State>;
-  private _transitionMap : GoodMap;
 
   private _tm:TuringMachine;
 
-  getState(asStr:string) :State{
-    return this._stateSet.find(s=>s.stateName===asStr);
-  }
-  getSymbol(asStr:string) :InputSymbol{
-    return this._inputSymbols.find(s=>s.value===asStr);
-  }
 
   public clear_tm() {
     const tape = document.getElementById("tape_ul");
@@ -68,13 +34,6 @@ class Runner implements Observer {
   }
 
   public init() {
-    this.clear_tm();
-
-    this._inputSymbols = new Array<InputSymbol>();
-    this._tapeElements = new Array<TapeElement>();
-    this._stateSet = new Array<State>();
-    this._acceptSet = new Array<State>();
-    this._transitionMap = new GoodMap();
   }
 
   public get tm() {return this._tm};
@@ -84,10 +43,16 @@ class Runner implements Observer {
     const form = document.querySelector('form')!;
 
     form.onsubmit = (_) => {
-      this.init();
+      this.clear_tm();
+
+      let inputSymbols : Array<InputSymbol> = new Array<InputSymbol>();
+      let tapeElements : Array<TapeElement>= new Array<TapeElement>();
+      let stateSet : Array<State> = new Array<State>();
+      let acceptSet : Array<State>= new Array<State>();
+      let transitionMap : GoodMap = new GoodMap();
 
       const data = new FormData(form);
-      const inputSymbols = (data.get('input_symbols') as string).split(",");
+      const formInputSymbols = (data.get('input_symbols') as string).split(",");
       const initTape = (data.get('init_tape') as string).split(",");
       const states = (data.get('states') as string).split(",");
       const acceptStates = (data.get('accept_states') as string).split(",");
@@ -98,41 +63,46 @@ class Runner implements Observer {
       const transitionDirections = data.getAll('direction');
       const transitionNextStates = data.getAll('next_state');
 
-      for(let inputSymbol of inputSymbols) {
-        this._inputSymbols.push(new InputSymbol(inputSymbol));
+      for(let inputSymbol of formInputSymbols) {
+        inputSymbols.push(new InputSymbol(inputSymbol));
       }
 
       for(let tapeElement of initTape) {
-        let symbol : InputSymbol = this._inputSymbols.find(e => e.value === tapeElement);
+        let symbol : InputSymbol = inputSymbols.find(e => e.value === tapeElement);
         if (symbol === null) {
           if (tapeElement !== "U") throw new Error("not input symbol");
-          this._tapeElements.push(new TapeElement(Tape.BLANK));
+          tapeElements.push(new TapeElement(Tape.BLANK));
           continue;
         }
-        this._tapeElements.push(new TapeElement(symbol));
+        tapeElements.push(new TapeElement(symbol));
       }
 
 
-      this._turingTape = new Tape(this._tapeElements);
-      this._turingHead = new TuringHead(this._turingTape);
+      let turingTape = new Tape(tapeElements);
+      let turingHead = new TuringHead(turingTape);
 
       for(let state of states) {
-        this._stateSet.push(new State(state));
+        stateSet.push(new State(state));
       }
       for(let acceptState of acceptStates) {
-        let state : State = this._stateSet.find(e => e.stateName === acceptState);
-        this._acceptSet.push(state);
+        let state : State = stateSet.find(e => e.stateName === acceptState);
+        acceptSet.push(state);
       }
-      this._transitionMap = new GoodMap();
+      transitionMap = new GoodMap();
 
 
       for(let i = 0; i < transitionStates.length; ++i){
-        let transitionState : State = this.getState(transitionStates[i] as string);
-        let transitionReadSymbol : TapeSymbol = this.getSymbol(transitionRead[i] as string) ? this.getSymbol(transitionRead[i] as string) : Tape.BLANK;
+        let transitionState : State = stateSet.find(s => s.stateName === transitionStates[i] as string);
+        let transitionReadSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionRead[i] as string).length > 0 ? 
+                                                inputSymbols.find(is => is.value === transitionRead[i] as string) : 
+                                                Tape.BLANK;
 
-        let transitionNextState : State = this.getState(transitionNextStates[i] as string);
-        let transitionWriteSymbol : TapeSymbol = this.getSymbol(transitionWrite[i] as string) ? this.getSymbol(transitionWrite[i] as string) : Tape.BLANK;
+        let transitionNextState : State = stateSet.find(s => s.stateName === transitionNextStates[i] as string);
+        let transitionWriteSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionWrite[i] as string) ? 
+                                                 inputSymbols.find(is => is.value === transitionWrite[i] as string) : 
+                                                 Tape.BLANK;
         let direction : Direction = null;
+
         switch (transitionDirections[i] as string){
           case "R": direction = Direction.RIGHT;
           break;
@@ -142,12 +112,12 @@ class Runner implements Observer {
           break;
         }
 
-        this._transitionMap.set(new Config(transitionState, transitionReadSymbol), 
+        transitionMap.set(new Config(transitionState, transitionReadSymbol), 
                                 new NextConfig(transitionNextState, transitionWriteSymbol, direction));
       }
 
 
-      this._tm = new TuringMachine(this._turingHead, this._stateSet, this._acceptSet, this._transitionMap);
+      this._tm = new TuringMachine(turingHead, stateSet, acceptSet, transitionMap);
       this._tm.subscribe(this);
 
       return false; // prevent reload
@@ -170,20 +140,21 @@ class Runner implements Observer {
 
       let edges : Map<State, State> = new Map<State, State>();
       keys.filter(k => k.state === s).forEach(c => {
-        if(edges.has(s) && edges.get(s) === this._transitionMap.get(c).state) {
-          cy.getElementById(s.stateId + '' + this._transitionMap.get(c).state.stateId).data({
+        const edgeId : string = s.stateId + '' + this._tm.transitionMap.get(c).state.stateId;
+
+        if(edges.has(s) && edges.get(s) === this._tm.transitionMap.get(c).state) {
+          cy.getElementById(edgeId).data({
             label: 
-              cy.getElementById(s.stateId + '' + this._transitionMap.get(c).state.stateId).data('label') + '\n' + 
-              c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
-              
+              cy.getElementById(edgeId).data('label') + '\n' + 
+              c.tapeSymbol.value + '|' + this._tm.transitionMap.get(c).tapeSymbol.value + ',' + this._tm.transitionMap.get(c).direction.toString()
           });
         }else {
           cy.add({
               data: {
-                  id: s.stateId + '' + this._transitionMap.get(c).state.stateId,
-                  label: c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
+                  id: edgeId,
+                  label: c.tapeSymbol.value + '|' + this._tm.transitionMap.get(c).tapeSymbol.value + ',' + this._tm.transitionMap.get(c).direction.toString(),
                   source: '' + s.stateId,
-                  target: '' + this._transitionMap.get(c).state.stateId
+                  target: '' + this._tm.transitionMap.get(c).state.stateId
               }
           });
           edges.set(s, this.tm.transitionMap.get(c).state);
