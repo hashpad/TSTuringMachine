@@ -107,6 +107,7 @@ class NextConfig extends Config {
 }
 class TuringMachine {
     constructor(_head, _stateSet, _acceptSet, _transitionMap, _inputSymbolSet, _startState) {
+        this._isRunning = true;
         this._isAccepted = false;
         this._head = _head;
         this._stateSet = _stateSet;
@@ -128,9 +129,10 @@ class TuringMachine {
             if (this.head.position === te)
                 te_li.classList.add("head");
         }
-        if (this._isAccepted) {
+        if (!this._isRunning) {
             const isAccepted = document.getElementById("is_accepted");
-            isAccepted.innerHTML = "<span style='color: green;'>Accepted</span>";
+            let [msg, color] = this._isAccepted ? ["Accepted", "green"] : ["Rejected", "red"];
+            isAccepted.innerHTML = `<span style='color: ${color};'>${msg}</span>`;
         }
     }
     get head() { return this._head; }
@@ -146,6 +148,8 @@ class TuringMachine {
         return val;
     }
     oneStep() {
+        if (!this._isRunning)
+            return;
         let nextConfig = this.transitionFunction();
         this._currentConfig.state = nextConfig.state;
         this._head.position.symbol = nextConfig.tapeSymbol;
@@ -155,6 +159,7 @@ class TuringMachine {
             if (this._acceptSet.includes(this._currentConfig.state)) {
                 this._isAccepted = true;
             }
+            this._isRunning = false;
         }
         this.render();
     }
@@ -229,7 +234,8 @@ class Runner {
     }
     clear_tm() {
         const tape = document.getElementById("tape_ul");
-        tape.innerHTML = "";
+        const isAccepted = document.getElementById("is_accepted");
+        tape.innerHTML, isAccepted.innerHTML = "";
     }
     init() {
         this.clear_tm();

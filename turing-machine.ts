@@ -57,7 +57,7 @@ class TapeElement {
 }
 
 class Tape {
-  static readonly BLANK : TuringSymbol = new TuringSymbol("U");
+  static readonly BLANK : TuringSymbol = new TuringSymbol("#");
   private _tapeElements : Array<TapeElement>;
 
   constructor(_initialTapeElements:Array<TapeElement>) {
@@ -134,6 +134,7 @@ class NextConfig extends Config {
 
 
 class TuringMachine {
+  private _isRunning : boolean;
   private _isAccepted : boolean;
 
 
@@ -155,6 +156,7 @@ class TuringMachine {
               _transitionMap: GoodMap,
               _inputSymbolSet?:Array<InputSymbol>,
               _startState?:State) {
+    this._isRunning = true;
     this._isAccepted = false;
     this._head = _head;
 
@@ -187,9 +189,10 @@ class TuringMachine {
         
     }
 
-    if(this._isAccepted) {
+    if(!this._isRunning){
       const isAccepted = document.getElementById("is_accepted");
-      isAccepted.innerHTML = "<span style='color: green;'>Accepted</span>";
+      let [msg, color] : [string, string] = this._isAccepted ? ["Accepted", "green"] : ["Rejected", "red"];
+      isAccepted.innerHTML = `<span style='color: ${color};'>${msg}</span>`;
     }
 
   }
@@ -208,6 +211,7 @@ class TuringMachine {
   }
 
   public oneStep() {
+    if(!this._isRunning) return;
     let nextConfig : NextConfig = this.transitionFunction();
     this._currentConfig.state = nextConfig.state;
     this._head.position.symbol = nextConfig.tapeSymbol;
@@ -218,6 +222,7 @@ class TuringMachine {
       if(this._acceptSet.includes(this._currentConfig.state)){
         this._isAccepted = true;
       }
+      this._isRunning = false;
     }
     this.render();
 
@@ -244,8 +249,9 @@ class Runner {
 
   public clear_tm() {
     const tape = document.getElementById("tape_ul");
+    const isAccepted = document.getElementById("is_accepted");
 
-    tape.innerHTML = "";
+    tape.innerHTML, isAccepted.innerHTML = "";
   }
 
   public init() {
