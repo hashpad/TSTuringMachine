@@ -98,7 +98,7 @@ class Runner implements Observer {
                                                 Tape.BLANK;
 
         let transitionNextState : State = stateSet.find(s => s.stateName === transitionNextStates[i] as string);
-        let transitionWriteSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionWrite[i] as string) ? 
+        let transitionWriteSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionWrite[i] as string).length > 0 ? 
                                                  inputSymbols.find(is => is.value === transitionWrite[i] as string) : 
                                                  Tape.BLANK;
         let direction : Direction = null;
@@ -112,21 +112,25 @@ class Runner implements Observer {
           break;
         }
 
+        if(Array.from(transitionMap.keys()).filter(c => c.state === transitionState && c.tapeSymbol === transitionReadSymbol).length > 0){
+          console.log("an entry will be skipped, duplicate (state, symbol) combos are not allowed");continue;
+        }
+
         transitionMap.set(new Config(transitionState, transitionReadSymbol), 
-                                new NextConfig(transitionNextState, transitionWriteSymbol, direction));
+                          new NextConfig(transitionNextState, transitionWriteSymbol, direction));
       }
 
 
       this._tm = new TuringMachine(turingHead, stateSet, acceptSet, transitionMap);
       this._tm.subscribe(this);
+      this.renderGraph();
 
       return false; // prevent reload
     };
 
   }
 
-  public render(): void {
-
+  public renderGraph () : void {
     cy.elements().remove();
 
     this._tm.stateSet.forEach(s => {
@@ -195,8 +199,12 @@ class Runner implements Observer {
       }}
     ]);
     cy.layout({
-        name: 'circle'
+        name: 'circle',
     }).run();
+
+  }
+
+  public render(): void {
 
     const tape = document.getElementById("tape_ul");
 
