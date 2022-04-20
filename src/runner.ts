@@ -64,6 +64,7 @@ class Runner implements Observer {
       const transitionNextStates = data.getAll('next_state');
 
       for(let inputSymbol of formInputSymbols) {
+        if(inputSymbol === "") throw new Error("input symbol cannot be empty");
         try {
           inputSymbols.push(new InputSymbol(inputSymbol));
         }catch (e) {
@@ -73,8 +74,12 @@ class Runner implements Observer {
       }
 
       for(let tapeElement of initTape) {
+        if(tapeElement === "") {
+          tapeElements.push(new TapeElement(Tape.BLANK));
+          continue;
+        }
         let symbol : InputSymbol = inputSymbols.find(e => e.value === tapeElement);
-        if (symbol === null) {
+        if (symbol == null) {
           if (tapeElement !== "U") throw new Error("not input symbol");
           tapeElements.push(new TapeElement(Tape.BLANK));
           continue;
@@ -86,10 +91,14 @@ class Runner implements Observer {
       let turingTape = new Tape(tapeElements);
       let turingHead = new TuringHead(turingTape);
 
+      if(states.length === 1 && states[0] === "") throw new Error("no states are provided");
       for(let state of states) {
+        if(state === "") throw new Error("States cannot have empty string as a name");
         stateSet.push(new State(state));
       }
+
       for(let acceptState of acceptStates) {
+        if(acceptState === "" && acceptStates.length !== 1) throw new Error("States cannot have empty string as a name")
         let state : State = stateSet.find(e => e.stateName === acceptState);
         acceptSet.push(state);
       }
@@ -97,15 +106,11 @@ class Runner implements Observer {
 
 
       for(let i = 0; i < transitionStates.length; ++i){
-        let transitionState : State = stateSet.find(s => s.stateName === transitionStates[i] as string);
-        let transitionReadSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionRead[i] as string).length > 0 ? 
-                                                inputSymbols.find(is => is.value === transitionRead[i] as string) : 
-                                                Tape.BLANK;
+        let transitionState : State = stateSet.find(s => s.stateName === transitionStates[i] as string) || null;
+        let transitionReadSymbol : TapeSymbol = inputSymbols.find(is => is.value === transitionRead[i] as string) || Tape.BLANK;
 
-        let transitionNextState : State = stateSet.find(s => s.stateName === transitionNextStates[i] as string);
-        let transitionWriteSymbol : TapeSymbol = inputSymbols.filter(is => is.value === transitionWrite[i] as string).length > 0 ? 
-                                                 inputSymbols.find(is => is.value === transitionWrite[i] as string) : 
-                                                 Tape.BLANK;
+        let transitionNextState : State = stateSet.find(s => s.stateName === transitionNextStates[i] as string) || null;
+        let transitionWriteSymbol : TapeSymbol = inputSymbols.find(is => is.value === transitionWrite[i] as string) || Tape.BLANK;
         let direction : Direction = null;
 
         switch (transitionDirections[i] as string){
@@ -115,12 +120,14 @@ class Runner implements Observer {
           break;
           case "N": direction = Direction.NO;
           break;
+          default: direction = null;
         }
 
         if(Array.from(transitionMap.keys()).filter(c => c.state === transitionState && c.tapeSymbol === transitionReadSymbol).length > 0){
           console.log("an entry will be skipped, duplicate (state, symbol) combos are not allowed");continue;
         }
 
+        if(!transitionState || !transitionNextState || !direction) throw new Error("Transition map contains element that are not defined above");
         transitionMap.set(new Config(transitionState, transitionReadSymbol), 
                           new NextConfig(transitionNextState, transitionWriteSymbol, direction));
       }
@@ -214,16 +221,24 @@ class Runner implements Observer {
     const tape = document.getElementById("tape_ul");
 
     tape.innerHTML = "";
-
-    for (let te of this._tm.head.tape.tapeElements){
+    console.log(this._tm.head.tape.tapeElements);
+    if(this._tm.head.tape.tapeElements.length === 1) { // BLANK is a default tape element
       const te_li = document.createElement("li");
-      te_li.textContent = te.symbol.value;
-
+      te_li.textContent = Tape.BLANK.value;
       tape.appendChild(te_li);
+      te_li.classList.add("head");
+    }else {
+      for (let te of this._tm.head.tape.tapeElements){
+        const te_li = document.createElement("li");
+        te_li.textContent = te.symbol.value;
 
-      if (this._tm.head.position === te) te_li.classList.add("head");
-        
+        tape.appendChild(te_li);
+
+        if (this._tm.head.position === te) te_li.classList.add("head");
+          
+      }
     }
+
 
     if(!this._tm.isRunning){
       const isAccepted = document.getElementById("is_accepted");
@@ -231,12 +246,15 @@ class Runner implements Observer {
       isAccepted.innerHTML = `<span style='color: ${color};'>${msg}</span>`;
     }
 
+    const config = document.getElementById("configuration");
+    config.innerHTML = 'current state: <span style="color: green;">' + this._tm.currentConfig.state.stateName + '</span>';
+
   }
 
   private renderOnce() {
 
     const onestepButton = document.getElementById("oneStep");
-    onestepButton.addEventListener('click', () => {this._tm.oneStep(); console.log("step")});
+    onestepButton.addEventListener('click', () => {this._tm.oneStep();});
 
     const transitionEntryButton = document.getElementById("addTransitionEntry");
     const transitionEntries = document.getElementsByClassName("transitionEntry");
