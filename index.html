@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>test</title>
+    <title>Turing Machine</title>
     <style>
       * {margin:0; padding:0;}
       body {
@@ -74,6 +74,11 @@
   </head>
   <body>
     <div id="app">
+      <div id='presets'>
+        <select name="preset" id="presets_select">
+          <option>Please choose a preset</option>
+        </select>
+      </div>
       <div id="data">
         <form id="data_form">
           <label>input symbols:</label><br />
@@ -89,13 +94,13 @@
           <input name="accept_states" type="text" placeholder="separated by ','" /><br />
 
           <label>Transition map:</label><br />
-          <button id="addTransitionEntry" type="button">+</button>
+          <button id="addTransitionEntry" type="button">+</button> δ(current_state, tape_symbol) = (new_tape_symbol, direction, next_state)
           <div class="transitionEntry">
-            <input name="state" type="text" placeholder="state" />
-            <input name="read" type="text" placeholder="read" />
-            <input name="write" type="text" placeholder="write" />
-            <input name="direction" type="text" placeholder="direction" />
-            <input name="next_state" type="text" placeholder="next state" /><br />
+            δ(<input name="state" type="text" placeholder="state" />
+            ,<input name="read" type="text" placeholder="read" />)=
+            (<input name="write" type="text" placeholder="write" />
+            ,<input name="direction" type="text" placeholder="direction" />
+            ,<input name="next_state" type="text" placeholder="next state" />)<br />
           </div>
           <button id="submitMachine" type="submit">run</button>
         </form>
@@ -126,7 +131,10 @@
       </div>
 
     </div>
+    <div style="clear: both;"></div>
+    <a style="text-decoration: none; float: right; margin-top: 20px;" href="https://github.com/postkpao/tsturingmachine" target="_blank">Project link on github</a>
 
     <script src="./dist/main.js"></script>
   </body>
 </html>
+

@@ -33,6 +33,11 @@ export class State {
 
   get stateName() {return this._stateName;}
   get stateId() {return this._stateId;}
+
+
+  toString () {
+    return this._stateName;
+  }
 }
 
 export class TuringSymbol {
@@ -44,6 +49,10 @@ export class TuringSymbol {
   }
 
   get value () { return this._value; }
+  
+  toString() {
+    return this._value;
+  }
 }
 
 export class TapeSymbol extends TuringSymbol {}
@@ -60,6 +69,10 @@ export class TapeElement {
   get symbol () { return this._symbol; }
 
   set symbol (_symbol:TapeSymbol) { this._symbol = _symbol;}
+
+  toString() {
+    return this._symbol.toString();
+  }
 }
 
 export class Tape {
@@ -185,11 +198,13 @@ export class TuringMachine extends Subject {
   public get isAccepted() {return this._isAccepted;}
   public get head() {return this._head;}
   public get stateSet() {return this._stateSet;}
+  public get acceptSet() {return this._acceptSet;}
   public get inputSymbolSet() {return this._inputSymbolSet;}
   public get tapeSymbolSet() {return this._tapeSymbolSet;}
   public get startState() {return this._startState;}
   public get currentConfig() {return this._currentConfig;}
   public get transitionMap() {return this._transitionMap;}
+
 
   public transitionFunction() : NextConfig {
     let val:NextConfig = this._transitionMap.get(this._currentConfig);
@@ -215,5 +230,6 @@ export class TuringMachine extends Subject {
 
   }
 }
+
 
 
