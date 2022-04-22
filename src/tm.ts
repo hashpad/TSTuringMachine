@@ -1,4 +1,5 @@
 import {Subject} from './observer'
+import {Node, Vertex, Graph} from './graph'
 
 export class GoodMap extends Map<Config, NextConfig> {
   
@@ -169,6 +170,7 @@ export class TuringMachine extends Subject {
 
   private _transitionMap : GoodMap;
 
+
   constructor(_head:TuringHead,
               _stateSet:Array<State>,
               _acceptSet:Array<State>,
@@ -228,6 +230,35 @@ export class TuringMachine extends Subject {
     }
     this.notifiy();
 
+  }
+  
+  public toGraph() : Graph {
+    let nodes : Array<Node> = new Array<Node>();
+    let vertices : Array<Vertex> = new Array<Vertex>();
+    this._stateSet.forEach(s => {
+      nodes.push(new Node(s));
+    });
+
+    this._stateSet.forEach(s => {
+      let keys : Array<Config> = Array.from(this._transitionMap.keys());
+
+      keys.filter(k => k.state === s).forEach(c => {
+        const edgeId : string = s.stateId + '' + this._transitionMap.get(c).state.stateId;
+
+        let existingVertex : Vertex = vertices.find(v => v.from.state === s);
+        if(existingVertex && existingVertex.to.state === this._transitionMap.get(c).state){
+          existingVertex.content = c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString();
+        }else {
+          vertices.push(new Vertex(
+                                    edgeId,
+                                    c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
+                                    nodes.find(n => n.state === s),
+                                    nodes.find(n => n.state === this._transitionMap.get(c).state)
+                        ));
+        }
+      });
+    });
+    return new Graph(nodes, vertices);
   }
 }
 

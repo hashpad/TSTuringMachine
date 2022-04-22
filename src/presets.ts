@@ -1,5 +1,17 @@
-import {InputSymbol, TapeElement, Tape, TuringHead, State, GoodMap, TuringMachine, Config, NextConfig, TapeSymbol, Direction} from './tm'
-import {Preset} from './runner'
+import {InputSymbol, TapeElement, Tape, TuringHead, State, GoodMap, TuringMachine, Config, NextConfig, Direction} from './tm'
+
+
+export class Preset {
+  private _id:number;
+  private static idInc : number = 0;
+  constructor(private _name:string, private _tm:TuringMachine){
+    this._id = Preset.idInc++;
+  }
+
+  get tm() {return this._tm;}
+  get name() {return this._name;}
+  get id() {return this._id;}
+}
 
 export let presets: Array<Preset> = new Array<Preset>();
 
