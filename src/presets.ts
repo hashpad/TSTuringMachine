@@ -8,9 +8,9 @@ export class Preset {
     this._id = Preset.idInc++;
   }
 
-  get tm() {return this._tm;}
-  get name() {return this._name;}
-  get id() {return this._id;}
+  public get tm() {return this._tm;}
+  public get name() {return this._name;}
+  public get id() {return this._id;}
 }
 
 export let presets: Array<Preset> = new Array<Preset>();

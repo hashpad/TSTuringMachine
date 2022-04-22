@@ -18,8 +18,7 @@ class Runner implements Observer {
 
     this.renderOnce();
 
-    const form = document.querySelector('form')!;
-
+    const form = document.querySelector('form');
     form.onsubmit = (_) => {
       this.initTmUsingForm(form);
 
@@ -259,6 +258,6 @@ class Runner implements Observer {
 
 import {presets} from './presets'
 
-let runner : Runner = new Runner(presets);
+new Runner(presets);
 
 

@@ -9,8 +9,8 @@ export class Subject {
     this._observers = new Array<Observer>();
   }
   
-  subscribe (obs:Observer) { this._observers.push(obs); this.notifiy();}
-  notifiy () {
+  public subscribe (obs:Observer) { this._observers.push(obs); this.notifiy();}
+  public notifiy () {
     this._observers.forEach(obs => obs.render());
   }
 }

@@ -3,30 +3,24 @@ import {State} from './tm'
 
 export class Node {
   constructor(private _state:State) {}
-  public get state() {return this._state;}
+  public get state() { return this._state; }
 }
 export class Vertex {
   constructor(private _id:string, private _content:string, private _from:Node, private _to:Node) {}
-  public get id() {return this._id;}
-  public get content() {return this._content;}
-  public set content(str:string) {this._content+=('\n' + str);}
+  public get id() { return this._id; }
+  public get content() { return this._content; }
+  public set content(str:string) { this._content+=('\n' + str); }
 
-  public get from() {return this._from;}
-  public get to() {return this._to;}
-
-  public has(node:Node) {return node === this._from || node === this._to;}
-  public hasFrom(node:Node) {return node === this._from;}
-  public hasTo(node:Node) {return node === this._to;}
+  public get from() { return this._from; }
+  public get to() { return this._to; }
 }
 
 export class Graph {
   private _cy : cytoscape.Core;
   
-  constructor(private _nodes:Array<Node>, private _vertices:Array<Vertex>) {
-    
-  }
+  constructor(private _nodes:Array<Node>, private _vertices:Array<Vertex>) {}
 
-  public getNode(state:State) {return this._nodes.find(n => n.state === state);}
+  public getNode(state:State) { return this._nodes.find(n => n.state === state); }
 
   public render(html_id:string) {
     this.initCytoscape(html_id);
@@ -40,9 +34,7 @@ export class Graph {
       );
     });
     this._nodes.forEach(n => {
-
       this._vertices.filter(v => v.from === n).forEach(v => {
-
           this._cy.add({
               data: {
                   id: v.id,

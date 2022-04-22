@@ -2,18 +2,14 @@ import {Subject} from './observer'
 import {Node, Vertex, Graph} from './graph'
 
 export class GoodMap extends Map<Config, NextConfig> {
-  
   public get(key:Config) : NextConfig {
-    let val:NextConfig = null;
     for(let [k, v] of this){
       if(k.equals(key)) {
-        val = v;
-        break;
+        return v;
       }
     }
-    return val;
+    return null;
   }
-
 }
 
 export enum Direction {
@@ -25,72 +21,49 @@ export enum Direction {
 export class State {
   static stateIdStatic : number = 0;
   private readonly _stateId : number;
-  readonly _stateName : string;
 
-  constructor (_stateName : string) {
-    this._stateName = _stateName;
+  constructor (private readonly _stateName : string) {
     this._stateId = State.stateIdStatic++;
   }
 
-  get stateName() {return this._stateName;}
-  get stateId() {return this._stateId;}
+  public get stateName() {return this._stateName;}
+  public get stateId() {return this._stateId;}
 
-
-  toString () {
-    return this._stateName;
-  }
+  public toString () { return this._stateName; }
 }
 
 export class TuringSymbol {
-  private readonly _value : string;
-
-  constructor (_value : string) {
+  constructor (private readonly _value : string) {
     if (_value.length !== 1) throw new Error("Input symbols should be single characters");
-    this._value = _value;
   }
 
-  get value () { return this._value; }
+  public get value () { return this._value; }
   
-  toString() {
-    return this._value;
-  }
+  public toString() { return this._value; }
 }
-
 export class TapeSymbol extends TuringSymbol {}
-
 export class InputSymbol extends TapeSymbol {}
 
 export class TapeElement {
-  private _symbol : TuringSymbol;
+  constructor(private _symbol : TuringSymbol) {}
 
-  constructor(_symbol : TuringSymbol) {
-    this._symbol = _symbol;
-  }
+  public get symbol () { return this._symbol; }
 
-  get symbol () { return this._symbol; }
+  public set symbol (_symbol:TapeSymbol) { this._symbol = _symbol; }
 
-  set symbol (_symbol:TapeSymbol) { this._symbol = _symbol;}
-
-  toString() {
-    return this._symbol.toString();
-  }
+  public toString() { return this._symbol.toString(); }
 }
 
 export class Tape {
-  static readonly BLANK : TuringSymbol = new TuringSymbol("#");
-  private _tapeElements : Array<TapeElement>;
+  public static readonly BLANK : TuringSymbol = new TuringSymbol("#");
 
-  constructor(_initialTapeElements:Array<TapeElement>) {
-    this._tapeElements = _initialTapeElements;
-  }
+  constructor(private _tapeElements:Array<TapeElement>) {}
 
-  get tapeElements() {return this._tapeElements;}
+  public get tapeElements() {return this._tapeElements;}
 
-  getInitHeadElement () : TapeElement {
-    return this._tapeElements[0];
-  }
+  public getInitHeadElement () : TapeElement { return this._tapeElements[0]; }
 
-  step (tapeElement: TapeElement, direction:Direction) : TapeElement {
+  public step (tapeElement: TapeElement, direction:Direction) : TapeElement {
     if(direction === Direction.NO) {
       return tapeElement;
     }else if(direction === Direction.RIGHT){
@@ -109,45 +82,35 @@ export class Tape {
 
 export class TuringHead {
   private _position : TapeElement;
-  private _tape : Tape;
 
-  constructor (_tape : Tape) {
+  constructor (private _tape : Tape) {
     this._position = _tape.getInitHeadElement();
-    this._tape = _tape;
   }
 
-  get position() {return this._position;}
-  get tape() {return this._tape;}
+  public get position() {return this._position;}
+  public get tape() {return this._tape;}
 
-  move(direction:Direction) {
-    this._position = this._tape.step(this._position, direction);
-  }
+  public move(direction:Direction) { this._position = this._tape.step(this._position, direction); }
 }
 
 
 export class Config {
   constructor(private _state:State, private _tapeSymbol:TapeSymbol){}
 
-  get tapeSymbol() {return this._tapeSymbol;}
-  get state() {return this._state;}
+  public get tapeSymbol() {return this._tapeSymbol;}
+  public get state() {return this._state;}
 
-  set tapeSymbol(_tapeSymbol:TapeSymbol) {this._tapeSymbol = _tapeSymbol;}
-  set state(_state:State) {this._state = _state;}
+  public set tapeSymbol(_tapeSymbol:TapeSymbol) {this._tapeSymbol = _tapeSymbol;}
+  public set state(_state:State) {this._state = _state;}
   
-  public equals(c:Config) : boolean {
-    return this._state === c.state && this._tapeSymbol === c.tapeSymbol;
-  }
+  public equals(c:Config) : boolean { return this._state === c.state && this._tapeSymbol === c.tapeSymbol; }
 
-  public asNextConfig() : NextConfig {
-    return new NextConfig(this._state, this._tapeSymbol, Direction.NO);
-  }
+  public asNextConfig() : NextConfig { return new NextConfig(this._state, this._tapeSymbol, Direction.NO); }
 }
 export class NextConfig extends Config {
-  constructor(_state:State, _tapeSymbol:TapeSymbol, private _direction:Direction){
-    super (_state, _tapeSymbol);
-  }
+  constructor(_state:State, _tapeSymbol:TapeSymbol, private _direction:Direction){ super (_state, _tapeSymbol); }
 
-  get direction() {return this._direction;}
+  public get direction() {return this._direction;}
 }
 
 
@@ -210,8 +173,7 @@ export class TuringMachine extends Subject {
 
   public transitionFunction() : NextConfig {
     let val:NextConfig = this._transitionMap.get(this._currentConfig);
-    if(val === null) return this._currentConfig.asNextConfig();
-    return val;
+    return val ? val : this._currentConfig.asNextConfig();
   }
 
   public oneStep() {
@@ -224,17 +186,19 @@ export class TuringMachine extends Subject {
 
     if(nextConfig.equals(this._currentConfig) && nextConfig.direction === Direction.NO) {
       if(this._acceptSet.includes(this._currentConfig.state)){
-        this._isAccepted = true;
+        this.accept();
       }
-      this._isRunning = false;
+      this.halt();
     }
     this.notifiy();
-
   }
+
+  public accept() {this._isAccepted = true;}
+  public halt() {this._isRunning = false;}
   
   public toGraph() : Graph {
-    let nodes : Array<Node> = new Array<Node>();
-    let vertices : Array<Vertex> = new Array<Vertex>();
+    const nodes : Array<Node> = new Array<Node>();
+    const vertices : Array<Vertex> = new Array<Vertex>();
     this._stateSet.forEach(s => {
       nodes.push(new Node(s));
     });
@@ -244,14 +208,15 @@ export class TuringMachine extends Subject {
 
       keys.filter(k => k.state === s).forEach(c => {
         const edgeId : string = s.stateId + '' + this._transitionMap.get(c).state.stateId;
+        const edgeCnt : string = c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString();
 
         let existingVertex : Vertex = vertices.find(v => v.from.state === s);
         if(existingVertex && existingVertex.to.state === this._transitionMap.get(c).state){
-          existingVertex.content = c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString();
+          existingVertex.content = edgeCnt
         }else {
           vertices.push(new Vertex(
                                     edgeId,
-                                    c.tapeSymbol.value + '|' + this._transitionMap.get(c).tapeSymbol.value + ',' + this._transitionMap.get(c).direction.toString(),
+                                    edgeCnt,
                                     nodes.find(n => n.state === s),
                                     nodes.find(n => n.state === this._transitionMap.get(c).state)
                         ));
