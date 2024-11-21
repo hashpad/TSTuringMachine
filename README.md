@@ -1,1 +1,4 @@
 # TSTuringMachine
+```
+npm run build
+```
