@@ -21,7 +21,5 @@ xdg-open index.html
 
 ## Features
 
-* Preset machines included for quick testing (e.g., 0ⁿ1ⁿ).
+* Preset machines included.
 * Step/run controls with visual tape and head.
-* Accept/reject detection executed in core `TuringMachine` logic.
-
